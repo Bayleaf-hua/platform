@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老字号文化传承平台</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #F4A460;
+        }
+        
+        body {
+            background-color: #FFF8E1;
+            font-family: 'SimSun', '宋体', serif;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .brand-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #E6D3A7;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .brand-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(139, 69, 19, 0.1);
+        }
+        
+        .brand-img {
+            height: 200px;
+            object-fit: cover;
+            background-color: #F5E6CA;
+        }
+        
+        .category-badge {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+        }
+        
+        .timeline-container {
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline-item {
+            padding: 20px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s;
+        }
+        
+        .timeline-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .search-box {
+            max-width: 500px;
+            margin: 30px auto;
+        }
+        
+        .chat-bot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .chat-message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            text-align: right;
+        }
+        
+        .bot-message {
+            text-align: left;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        .brand-detail-modal .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">🏮 老字号文化传承</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#brands">品牌名录</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#timeline">历史长河</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">关于</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 搜索框 -->
+    <div class="container search-box">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="搜索老字号（如：瑞蚨祥、同仁堂...）" id="searchInput">
+            <button class="btn btn-warning" type="button" onclick="searchBrands()">搜索</button>
+            <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">清除</button>
+        </div>
+        <div id="searchResults" class="mt-2 text-center"></div>
+    </div>
+
+    <!-- 品牌展示 -->
+    <section id="brands" class="container py-5">
+        <h2 class="text-center mb-5">🏛️ 中华老字号名录</h2>
+        <div class="row g-4" id="brandsContainer">
+            <div class="col-12 text-center">
+                <div class="loading"></div>
+                <p class="mt-2">加载中...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 时间线 -->
+    <section id="timeline" class="container py-5 bg-light rounded">
+        <h2 class="text-center mb-5">📜 老字号历史时间线</h2>
+        <div class="timeline-container" id="timelineContainer">
+            <div class="text-center">
+                <div class="loading"></div>
+                <p class="mt-2">加载中...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于部分 -->
+    <section id="about" class="container py-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <h2 class="text-center mb-4">关于老字号文化传承平台</h2>
+                <p class="text-center text-muted">
+                    本平台致力于传承和弘扬中华老字号文化，展示老字号品牌的历史底蕴和文化价值。
+                    通过数字化手段，让更多人了解和认识这些承载着中华民族传统文化的老字号品牌。
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 智能问答助手按钮 -->
+    <button class="btn btn-primary position-fixed bottom-0 end-0 m-3" onclick="toggleChat()" style="z-index: 999;">
+        💬 老字号问答助手
+    </button>
+
+    <!-- 聊天机器人 -->
+    <div class="chat-bot" id="chatBot">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">老字号智能助手</h5>
+                <div>
+                    <button class="btn btn-sm btn-light me-2" onclick="clearChatHistory()" title="清除历史">🗑️</button>
+                    <button class="btn btn-sm btn-light" onclick="toggleChat()">×</button>
+                </div>
+            </div>
+            <div class="card-body overflow-auto" id="chatMessages" style="max-height: 400px;">
+                <div class="alert alert-info">
+                    您好！我是老字号文化助手，可以回答关于中华老字号的问题。
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="输入您的问题..." id="chatInput">
+                    <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 品牌详情模态框 -->
+    <div class="modal fade brand-detail-modal" id="brandDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="brandDetailTitle">品牌详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="brandDetailBody">
+                    <!-- 详情内容将通过JavaScript动态生成 -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 前端交互脚本 -->
+    <script>
+        const API_BASE_URL = 'http://localhost:3000/api';
+        let allBrands = [];
+        let currentSearchQuery = '';
+        let chatSessionId = 'session-' + Date.now(); // 生成会话ID
+
+        // 初始化页面
+        async function init() {
+            await loadBrands();
+            await loadTimeline();
+            setupEventListeners();
+        }
+
+        // 加载品牌数据
+        async function loadBrands() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/brands`);
+                allBrands = await response.json();
+                renderBrands(allBrands);
+            } catch (error) {
+                console.error('加载品牌数据失败:', error);
+                document.getElementById('brandsContainer').innerHTML = 
+                    '<div class="col-12"><div class="alert alert-danger">加载品牌数据失败，请稍后重试。</div></div>';
+            }
+        }
+
+        // 渲染品牌列表
+        function renderBrands(brands) {
+            const container = document.getElementById('brandsContainer');
+            
+            if (brands.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="no-results">
+                            <h4>暂无品牌数据</h4>
+                            <p>请稍后再试</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = brands.map(brand => `
+                <div class="col-lg-4 col-md-6">
+                    <div class="brand-card card h-100">
+                        <div class="brand-img card-img-top d-flex align-items-center justify-content-center">
+                            <h3 class="text-muted">${brand.name}</h3>
+                        </div>
+                        <div class="card-body">
+                            <span class="badge category-badge mb-2">${brand.category}</span>
+                            <h5 class="card-title">${brand.name}</h5>
+                            <p class="card-text">${brand.description}</p>
+                            <small class="text-muted">创立于：${brand.founded}</small>
+                            ${brand.location ? `<br><small class="text-muted">📍 ${brand.location}</small>` : ''}
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewDetail(${brand.id})">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 搜索品牌
+        async function searchBrands() {
+            const query = document.getElementById('searchInput').value.trim();
+            currentSearchQuery = query;
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (!query) {
+                resultsDiv.innerHTML = '';
+                renderBrands(allBrands);
+                return;
+            }
+            
+            try {
+                resultsDiv.innerHTML = '<div class="loading"></div> <span>搜索中...</span>';
+                const response = await fetch(`${API_BASE_URL}/brands/search?q=${encodeURIComponent(query)}`);
+                const filtered = await response.json();
+                
+                resultsDiv.innerHTML = `<p class="text-muted">找到 <strong>${filtered.length}</strong> 个相关老字号</p>`;
+                renderBrands(filtered);
+                
+                // 滚动到品牌区域
+                document.getElementById('brands').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error('搜索失败:', error);
+                resultsDiv.innerHTML = '<p class="text-danger">搜索失败，请稍后重试</p>';
+            }
+        }
+
+        // 清除搜索
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            currentSearchQuery = '';
+            renderBrands(allBrands);
+        }
+
+        // 查看品牌详情
+        async function viewDetail(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/brands/${id}`);
+                const brand = await response.json();
+                
+                const modalTitle = document.getElementById('brandDetailTitle');
+                const modalBody = document.getElementById('brandDetailBody');
+                
+                modalTitle.textContent = brand.name;
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="brand-img d-flex align-items-center justify-content-center mb-3" style="height: 200px;">
+                                <h2 class="text-muted">${brand.name}</h2>
+                            </div>
+                            <div class="text-center">
+                                <span class="badge category-badge mb-2">${brand.category}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <h4>基本信息</h4>
+                            <table class="table">
+                                <tr>
+                                    <th width="30%">品牌名称</th>
+                                    <td>${brand.name}</td>
+                                </tr>
+                                <tr>
+                                    <th>所属类别</th>
+                                    <td>${brand.category}</td>
+                                </tr>
+                                <tr>
+                                    <th>创立时间</th>
+                                    <td>${brand.founded}</td>
+                                </tr>
+                                ${brand.location ? `
+                                <tr>
+                                    <th>所在地</th>
+                                    <td>📍 ${brand.location}</td>
+                                </tr>
+                                ` : ''}
+                            </table>
+                            
+                            <h4 class="mt-4">品牌简介</h4>
+                            <p>${brand.description}</p>
+                            
+                            ${brand.history ? `
+                            <h4 class="mt-4">历史沿革</h4>
+                            <p>${brand.history}</p>
+                            ` : ''}
+                            
+                            ${brand.keywords && brand.keywords.length > 0 ? `
+                            <h4 class="mt-4">关键词</h4>
+                            <div>
+                                ${brand.keywords.map(kw => `<span class="badge bg-secondary me-2">${kw}</span>`).join('')}
+                            </div>
+                            ` : ''}
+                            
+                            ${brand.features && brand.features.length > 0 ? `
+                            <h4 class="mt-4">特色</h4>
+                            <ul>
+                                ${brand.features.map(feature => `<li>${feature}</li>`).join('')}
+                            </ul>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('brandDetailModal'));
+                modal.show();
+            } catch (error) {
+                console.error('加载品牌详情失败:', error);
+                alert('加载品牌详情失败，请稍后重试');
+            }
+        }
+
+        // 加载时间线数据
+        async function loadTimeline() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/timeline`);
+                const timeline = await response.json();
+                renderTimeline(timeline);
+            } catch (error) {
+                console.error('加载时间线失败:', error);
+                document.getElementById('timelineContainer').innerHTML = 
+                    '<div class="alert alert-danger">加载时间线数据失败，请稍后重试。</div>';
+            }
+        }
+
+        // 渲染时间线
+        function renderTimeline(timeline) {
+            const container = document.getElementById('timelineContainer');
+            
+            if (timeline.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">暂无时间线数据</div>';
+                return;
+            }
+            
+            // 按年份排序
+            const sortedTimeline = [...timeline].sort((a, b) => a.year - b.year);
+            
+            container.innerHTML = sortedTimeline.map(item => `
+                <div class="timeline-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5>${item.year}年 - ${item.title}</h5>
+                            <p class="mb-0">${item.description}</p>
+                        </div>
+                        ${item.brand ? `<span class="badge bg-primary">${item.brand}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 聊天机器人功能
+        function toggleChat() {
+            const chatBot = document.getElementById('chatBot');
+            chatBot.style.display = chatBot.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // 清除对话历史
+        async function clearChatHistory() {
+            try {
+                await fetch(`${API_BASE_URL}/chat/clear`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ sessionId: chatSessionId })
+                });
+                
+                // 清空聊天界面
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.innerHTML = `
+                    <div class="alert alert-info">
+                        您好！我是老字号文化助手，可以回答关于中华老字号的问题。
+                    </div>
+                `;
+                
+                // 生成新的会话ID
+                chatSessionId = 'session-' + Date.now();
+            } catch (error) {
+                console.error('清除历史失败:', error);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // 添加用户消息
+            addChatMessage(message, 'user');
+            input.value = '';
+            
+            // 显示加载状态
+            const loadingId = 'loading-' + Date.now();
+            chatMessages.innerHTML += `
+                <div class="chat-message bot-message" id="${loadingId}">
+                    <div class="loading"></div>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            try {
+                // 调用后端API
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        sessionId: chatSessionId
+                    })
+                });
+                
+                // 检查响应状态
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || '请求失败');
+                }
+                
+                const data = await response.json();
+                
+                // 更新会话ID（如果服务器返回了新的）
+                if (data.sessionId) {
+                    chatSessionId = data.sessionId;
+                }
+                
+                // 移除加载状态
+                document.getElementById(loadingId).remove();
+                
+                // 添加机器人回复
+                addChatMessage(data.response, 'bot');
+            } catch (error) {
+                console.error('发送消息失败:', error);
+                document.getElementById(loadingId).remove();
+                
+                // 显示友好的错误信息
+                let errorMessage = '抱歉，服务暂时不可用，请稍后再试。';
+                if (error.message.includes('API密钥')) {
+                    errorMessage = 'AI服务未配置，请联系管理员配置API密钥。';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                addChatMessage(errorMessage, 'bot');
+            }
+        }
+
+        // 添加聊天消息
+        function addChatMessage(message, type) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageClass = type === 'user' ? 'user-message' : 'bot-message';
+            const badgeClass = type === 'user' ? 'bg-primary' : 'bg-light text-dark';
+            
+            chatMessages.innerHTML += `
+                <div class="chat-message ${messageClass}">
+                    <span class="badge ${badgeClass} p-2">${message}</span>
+                </div>
+            `;
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 搜索框回车键支持
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchBrands();
+            });
+            
+            // 聊天框输入回车键支持
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

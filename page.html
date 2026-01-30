@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>老字号文化传承平台</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #8B4513;
+            --secondary-color: #D2691E;
+            --accent-color: #F4A460;
+        }
+        
+        body {
+            background-color: #FFF8E1;
+            font-family: 'SimSun', '宋体', serif;
+        }
+        
+        .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color) !important;
+        }
+        
+        .brand-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #E6D3A7;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        .brand-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(139, 69, 19, 0.1);
+        }
+        
+        .brand-img {
+            height: 200px;
+            object-fit: cover;
+            background-color: #F5E6CA;
+        }
+        
+        .category-badge {
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+            color: white;
+        }
+        
+        .timeline-container {
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline-item {
+            padding: 20px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .search-box {
+            max-width: 500px;
+            margin: 30px auto;
+        }
+        
+        .chat-bot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+            display: none;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">🏮 老字号文化传承</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="#brands">品牌名录</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#timeline">历史长河</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#map">老字号地图</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">关于</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 搜索框 -->
+    <div class="container search-box">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="搜索老字号（如：瑞蚨祥、同仁堂...）" id="searchInput">
+            <button class="btn btn-warning" type="button" onclick="searchBrands()">搜索</button>
+        </div>
+    </div>
+
+    <!-- 品牌展示 -->
+    <section id="brands" class="container py-5">
+        <h2 class="text-center mb-5">🏛️ 中华老字号名录</h2>
+        <div class="row g-4" id="brandsContainer">
+            <!-- 品牌卡片将通过JavaScript动态生成 -->
+        </div>
+    </section>
+
+    <!-- 时间线 -->
+    <section id="timeline" class="container py-5 bg-light rounded">
+        <h2 class="text-center mb-5">📜 老字号历史时间线</h2>
+        <div class="timeline-container">
+            <div class="timeline-item">
+                <h5>1663年 - 张小泉剪刀创立</h5>
+                <p>张小泉剪刀在杭州大井巷创立，开启了三百多年的匠心传承</p>
+            </div>
+            <div class="timeline-item">
+                <h5>1864年 - 全聚德创立</h5>
+                <p>杨全仁在北京前门外创立全聚德烤鸭店</p>
+            </div>
+            <!-- 更多时间线项目 -->
+        </div>
+    </section>
+
+    <!-- 智能问答助手按钮 -->
+    <button class="btn btn-primary position-fixed bottom-0 end-0 m-3" onclick="toggleChat()">
+        💬 老字号问答助手
+    </button>
+
+    <!-- 聊天机器人 -->
+    <div class="chat-bot" id="chatBot">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">老字号智能助手</h5>
+                <button class="btn btn-sm btn-light" onclick="toggleChat()">×</button>
+            </div>
+            <div class="card-body overflow-auto" id="chatMessages">
+                <div class="alert alert-info">
+                    您好！我是老字号文化助手，可以回答关于42个中华老字号的问题。
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="输入您的问题..." id="chatInput">
+                    <button class="btn btn-primary" onclick="sendMessage()">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 数据与交互 -->
+    <script>
+        // 品牌数据（简化版，实际应从数据库获取）
+        const brands = [
+            {
+                id: 1,
+                name: "瑞蚨祥",
+                category: "绸缎",
+                founded: "清朝咸丰年间",
+                description: "中华老字号绸缎店，曾为新中国第一面五星红旗提供面料",
+                keywords: ["国旗", "绸缎", "大栅栏"]
+            },
+            {
+                id: 2,
+                name: "同仁堂",
+                category: "医药",
+                founded: "1669年",
+                description: "中药老字号，曾为中共地下党秘密联络点",
+                keywords: ["中药", "御药", "地下党"]
+            },
+            {
+                id: 3,
+                name: "全聚德",
+                category: "餐饮",
+                founded: "1864年",
+                description: "北京烤鸭的代表，周总理曾用其招待外宾",
+                keywords: ["烤鸭", "外交", "全鸭席"]
+            }
+            // 可添加更多品牌...
+        ];
+
+        // 初始化品牌展示
+        function renderBrands() {
+            const container = document.getElementById('brandsContainer');
+            container.innerHTML = brands.map(brand => `
+                <div class="col-lg-4 col-md-6">
+                    <div class="brand-card card h-100">
+                        <div class="brand-img card-img-top d-flex align-items-center justify-content-center">
+                            <h3 class="text-muted">${brand.name}</h3>
+                        </div>
+                        <div class="card-body">
+                            <span class="badge category-badge mb-2">${brand.category}</span>
+                            <h5 class="card-title">${brand.name}</h5>
+                            <p class="card-text">${brand.description}</p>
+                            <small class="text-muted">创立于：${brand.founded}</small>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewDetail(${brand.id})">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 搜索功能
+        function searchBrands() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = brands.filter(brand => 
+                brand.name.toLowerCase().includes(query) ||
+                brand.description.toLowerCase().includes(query) ||
+                brand.keywords.some(kw => kw.toLowerCase().includes(query))
+            );
+            
+            // 更新显示
+            // 实际应重新渲染品牌列表
+            alert(`找到 ${filtered.length} 个相关老字号`);
+        }
+
+        // 查看详情
+        function viewDetail(id) {
+            const brand = brands.find(b => b.id === id);
+            if (brand) {
+                // 这里应打开详情页或模态框
+                alert(`即将查看 ${brand.name} 的详细信息\n\n${brand.description}`);
+            }
+        }
+
+        // 聊天机器人功能
+        function toggleChat() {
+            const chatBot = document.getElementById('chatBot');
+            chatBot.style.display = chatBot.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // 添加用户消息
+            chatMessages.innerHTML += `
+                <div class="text-end mb-2">
+                    <span class="badge bg-primary p-2">${message}</span>
+                </div>
+            `;
+            
+            // 模拟回答（实际应调用后端API）
+            const responses = [
+                "根据资料记载，瑞蚨祥是中华老字号绸缎店，曾为新中国第一面五星红旗提供面料。",
+                "同仁堂创立于1669年，不仅是中药老字号，还在抗日战争时期作为地下党联络点。",
+                "全聚德创立于1864年，以其烤鸭闻名，周总理曾用其进行'烤鸭外交'。",
+                "张一元茶庄创立于1900年，以其茉莉花茶制作技艺闻名。"
+            ];
+            
+            const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+            
+            // 添加机器人回复
+            setTimeout(() => {
+                chatMessages.innerHTML += `
+                    <div class="mb-2">
+                        <span class="badge bg-light text-dark p-2">${randomResponse}</span>
+                    </div>
+                `;
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 500);
+            
+            input.value = '';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderBrands();
+            
+            // 搜索框回车键支持
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchBrands();
+            });
+            
+            // 聊天框输入回车键支持
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+        });
+    </script>
+</body>
+</html>
